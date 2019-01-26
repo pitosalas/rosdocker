@@ -1,6 +1,4 @@
-# Seem to do everything, except being able to launch graphical apps or run over VNC
-
-FROM ubuntu:16.04
+FROM dorowu/ubuntu-desktop-lxde-vnc:xenial
 RUN apt-get update && apt-get install --assume-yes wget sudo
 
 # create non-root user
@@ -20,7 +18,7 @@ RUN wget https://raw.githubusercontent.com/ROBOTIS-GIT/robotis_tools/master/inst
 chmod 755 ./install_ros_kinetic.sh && \
 bash ./install_ros_kinetic.sh
 
-RUN sudo apt-get install --assume-yes ros-kinetic-joy ros-kinetic-teleop-twist-joy ros-kinetic-teleop-twist-keyboard
+RUN sudo apt-get install --assume-yes ros-kinetic-teleop-twist-joy ros-kinetic-teleop-twist-keyboard
 RUN sudo apt-get install -y ros-kinetic-teleop-twist-joy ros-kinetic-teleop-twist-keyboard ros-kinetic-laser-proc ros-kinetic-rgbd-launch 
 RUN sudo apt-get install -y ros-kinetic-depthimage-to-laserscan ros-kinetic-rosserial-arduino ros-kinetic-rosserial-python 
 RUN sudo apt-get install -y ros-kinetic-rosserial-server ros-kinetic-rosserial-client ros-kinetic-rosserial-msgs ros-kinetic-amcl 
@@ -40,7 +38,8 @@ RUN cd /home/$USERNAME/catkin_ws/src/ && \
 RUN echo 'source /opt/ros/kinetic/setup.bash' >> /home/$USERNAME/.bashrc
 RUN echo 'source /home/ros/catkin_ws/devel/setup.bash' >> /home/$USERNAME/.bashrc
 RUN echo `pwd`
-RUN echo `cat /home/ros/.bashrc`
-RUN echo `ls  -la /home/ros/.bashrc`
-RUN /bin/bash -c "source /home/$USERNAME/.bashrc"
+# RUN . /home/ros/.bashrc && . cm
 
+ENTRYPOINT /bin/bash
+
+# docker run -it --env="unix$DISPLAY" --env="QT_X11_NO_MITSHM=1" --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" rosdocker:latestexit
