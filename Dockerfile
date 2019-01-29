@@ -4,6 +4,8 @@
 # This one works and allows me to launch Gazebo
 # Launch `docker run --rm -it -p 80:80/tcp rosdocker:latest` will allow you to open a browser on 0.0.0.0
 # 
+# Kudos to DOROWU for his amazing VNC 16.04 KDE image
+# Kudos from BPINAYA for his amazing work too.
 
 FROM dorowu/ubuntu-desktop-lxde-vnc:xenial
 
@@ -18,6 +20,7 @@ RUN apt-get install -y \
   tmux \
   curl \
   wget \
+  git \
   sudo \
   libgl1-mesa-glx \
   libgl1-mesa-dri \
@@ -30,8 +33,35 @@ RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main"
 RUN apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 421C365BD9FF1F717815A3895523BAEEB01FA116
 
 # From Kinetic Installation instructions: http://wiki.ros.org/kinetic/Installation/Ubuntu
-RUN sudo apt-get update
+RUN apt-get update
 RUN apt-get install -y ros-kinetic-desktop-full
+RUN apt-get install -y chrony ntpdate build-essential
 RUN rosdep init
 RUN rosdep update
+RUN apt-get install -y python-rosinstall python-rosinstall-generator python-wstool build-essential
 
+# From Robotis TB3 install: https://raw.githubusercontent.com/ROBOTIS-GIT/robotis_tools/master/install_ros_kinetic.sh
+RUN apt-get install -y ros-kinetic-joy ros-kinetic-teleop-twist-joy ros-kinetic-teleop-twist-keyboard ros-kinetic-laser-proc ros-kinetic-rgbd-launch ros-kinetic-depthimage-to-laserscan ros-kinetic-rosserial-arduino ros-kinetic-rosserial-python ros-kinetic-rosserial-server ros-kinetic-rosserial-client ros-kinetic-rosserial-msgs ros-kinetic-amcl ros-kinetic-map-server ros-kinetic-move-base ros-kinetic-urdf ros-kinetic-xacro ros-kinetic-compressed-image-transport ros-kinetic-rqt-image-view ros-kinetic-gmapping ros-kinetic-navigation ros-kinetic-interactive-markers
+
+RUN echo 'source /opt/ros/kinetic/setup.bash' >> /home/ubuntu/.bashrc
+RUN echo 'source /home/ubuntu/catkin_ws/devel/setup.bash' >> /home/ubuntu/.bashrc
+
+RUN /bin/bash -c "echo 'export HOME=/home/ubuntu' >> /root/.bashrc && source /root/.bashrc"
+RUN mkdir -p ~/catkin_ws/src
+RUN echo "alias eb='nano ~/.bashrc'" >> ~/.bashrc
+RUN echo "alias sb='source ~/.bashrc'" >> ~/bashrc
+RUN echo "alias gs='git status'" >> ~/bashrc
+RUN echo "alias gp='git pull'" >> ~/bashrc
+RUN echo "alias cw='cd ~/$name_catkin_workspace'" >> ~/bashrc
+RUN echo "alias cs='cd ~/$name_catkin_workspace/src'" >> ~/bashrc
+RUN echo "alias cm='cd ~/$name_catkin_workspace && catkin_make'" >> ~/bashrc
+
+RUN echo "source /opt/ros/kinetic/setup.bash" >> ~/bashrc
+RUN echo "source ~/$name_catkin_workspace/devel/setup.bash" >> ~/bashrc
+RUN echo "export ROS_MASTER_URI=http://localhost:11311" >> ~/bashrc
+RUN echo "export ROS_HOSTNAME=localhost" >> ~/bashrc
+
+### Get Turtlebot3 stuff
+RUN cd /home/ubuntu/catkin_ws/src/ && git clone https://github.com/ROBOTIS-GIT/turtlebot3_msgs.git && \
+   git clone https://github.com/ROBOTIS-GIT/turtlebot3.git && \
+   git clone https://github.com/ROBOTIS-GIT/turtlebot3_simulations.git
