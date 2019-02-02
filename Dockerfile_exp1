@@ -7,7 +7,7 @@
 # Kudos to DOROWU for his amazing VNC 16.04 KDE image
 # Kudos from BPINAYA for his amazing work too.
 
-
+# Pretty good experiment, but didn't get it to work. Wanted to create a user ubuntu
 
 FROM dorowu/ubuntu-desktop-lxde-vnc:xenial
 
@@ -45,36 +45,35 @@ RUN apt-get install -y python-rosinstall python-rosinstall-generator python-wsto
 # From Robotis TB3 install: https://raw.githubusercontent.com/ROBOTIS-GIT/robotis_tools/master/install_ros_kinetic.sh
 RUN apt-get install -y ros-kinetic-joy ros-kinetic-teleop-twist-joy ros-kinetic-teleop-twist-keyboard ros-kinetic-laser-proc ros-kinetic-rgbd-launch ros-kinetic-depthimage-to-laserscan ros-kinetic-rosserial-arduino ros-kinetic-rosserial-python ros-kinetic-rosserial-server ros-kinetic-rosserial-client ros-kinetic-rosserial-msgs ros-kinetic-amcl ros-kinetic-map-server ros-kinetic-move-base ros-kinetic-urdf ros-kinetic-xacro ros-kinetic-compressed-image-transport ros-kinetic-rqt-image-view ros-kinetic-gmapping ros-kinetic-navigation ros-kinetic-interactive-markers
 
-RUN echo 'source /opt/ros/kinetic/setup.bash' >> /home/ubuntu/.bashrc
-RUN echo 'source /home/ubuntu/catkin_ws/devel/setup.bash' >> /home/ubuntu/.bashrc
-RUN /bin/bash -c "echo 'export HOME=/home/ubuntu' >> /root/.bashrc && source /root/.bashrc"
+RUN useradd -ms /bin/bash ros && echo "ros:ros" | chpasswd
+RUN adduser ros sudo
+USER ros
+WORKDIR /home/ros
+RUN echo 'source /opt/ros/kinetic/setup.bash' >> /home/ros/.bashrc
+RUN echo 'source /home/ros/catkin_ws/devel/setup.bash' >> /home/ros/.bashrc
+# RUN /bin/bash -c "echo 'export HOME=/home/ros' >> /root/.bashrc && source /root/.bashrc"
+RUN mkdir -p /home/ros/catkin_ws/src
 
-RUN mkdir -p ~/catkin_ws/src
+ENV BASH_ENV /home/ros/.bashrc
+# RUN cd /home/ros/catkin_ws/src && \
+#   /bin/bash -c "/opt/ros/kinetic/bin/catkin_init_workspace"
+# RUN cd /home/ros/catkin_ws && \
+#   /bin/bash -c -i "catkin_make"
 
-ENV BASH_ENV /home/ubuntu/.bashrc
-RUN cd ~/catkin_ws/src && \
-  /bin/bash -c -i "/opt/ros/kinetic/bin/catkin_init_workspace"
-RUN cd ~/catkin_ws && \
-  /bin/bash -c -i "catkin_make"
+RUN echo "alias eb='nano /home/ros/.bashrc'" >> /home/ros/.bashrc
+RUN echo "alias sb='source /home/ros/.bashrc'" >> /home/ros/.bashrc
+RUN echo "alias gs='git status'" >> /home/ros/.bashrc
+RUN echo "alias gp='git pull'" >> /home/ros/.bashrc
+RUN echo "alias cw='cd /home/ros/catkin_ws'" >> /home/ros/.bashrc
+RUN echo "alias cs='cd /home/ros/catkin_ws/src'" >> /home/ros/.bashrc
+RUN echo "alias cm='cd /home/ros/catkin_ws && catkin_make'" >> /home/ros/.bashrc
 
-RUN echo "alias eb='nano ~/.bashrc'" >> ~/.bashrc
-RUN echo "alias sb='source ~/.bashrc'" >> ~/.bashrc
-RUN echo "alias gs='git status'" >> ~/.bashrc
-RUN echo "alias gp='git pull'" >> ~/.bashrc
-RUN echo "alias cw='cd ~/catkin_ws'" >> ~/.bashrc
-RUN echo "alias cs='cd ~/catkin_ws/src'" >> ~/.bashrc
-RUN echo "alias cm='cd ~/catkin_ws && catkin_make'" >> ~/.bashrc
-
-RUN echo "source /opt/ros/kinetic/setup.bash" >> ~/.bashrc
-RUN echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc
-RUN echo "export ROS_MASTER_URI=http://localhost:11311" >> ~/.bashrc
-RUN echo "export ROS_HOSTNAME=localhost" >> ~/.bashrc
-RUN echo "export TB3_MODEL=burger" >> ~/.bashrc
-RUN echo "export TURTLEBOT3_MODEL=burger" >> ~/.bashrc
+RUN echo "source /opt/ros/kinetic/setup.bash" >> /home/ros/.bashrc
+RUN echo "source /home/ros/catkin_ws/devel/setup.bash" >> /home/ros/.bashrc
+RUN echo "export ROS_MASTER_URI=http://localhost:11311" >> /home/ros/.bashrc
+RUN echo "export ROS_HOSTNAME=localhost" >> /home/ros/.bashrc
 
 ### Get Turtlebot3 stuff
-RUN cd /home/ubuntu/catkin_ws/src/ && git clone https://github.com/ROBOTIS-GIT/turtlebot3_msgs.git && \
+RUN cd /home/ros/catkin_ws/src/ && git clone https://github.com/ROBOTIS-GIT/turtlebot3_msgs.git && \
    git clone https://github.com/ROBOTIS-GIT/turtlebot3.git && \
    git clone https://github.com/ROBOTIS-GIT/turtlebot3_simulations.git
-
-ENV RESOLUTION 1920x1080 

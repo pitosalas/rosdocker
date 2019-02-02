@@ -7,8 +7,6 @@
 # Kudos to DOROWU for his amazing VNC 16.04 KDE image
 # Kudos from BPINAYA for his amazing work too.
 
-
-
 FROM dorowu/ubuntu-desktop-lxde-vnc:xenial
 
 # Update
@@ -49,6 +47,11 @@ RUN echo 'source /opt/ros/kinetic/setup.bash' >> /home/ubuntu/.bashrc
 RUN echo 'source /home/ubuntu/catkin_ws/devel/setup.bash' >> /home/ubuntu/.bashrc
 RUN /bin/bash -c "echo 'export HOME=/home/ubuntu' >> /root/.bashrc && source /root/.bashrc"
 
+RUN useradd -ms /bin/bash ubuntu && echo "ubuntu:ubuntu" | chpasswd
+RUN adduser ubuntu sudo
+USER ubuntu
+WORKDIR /home/ubuntu
+
 RUN mkdir -p ~/catkin_ws/src
 
 ENV BASH_ENV /home/ubuntu/.bashrc
@@ -69,12 +72,8 @@ RUN echo "source /opt/ros/kinetic/setup.bash" >> ~/.bashrc
 RUN echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc
 RUN echo "export ROS_MASTER_URI=http://localhost:11311" >> ~/.bashrc
 RUN echo "export ROS_HOSTNAME=localhost" >> ~/.bashrc
-RUN echo "export TB3_MODEL=burger" >> ~/.bashrc
-RUN echo "export TURTLEBOT3_MODEL=burger" >> ~/.bashrc
 
 ### Get Turtlebot3 stuff
 RUN cd /home/ubuntu/catkin_ws/src/ && git clone https://github.com/ROBOTIS-GIT/turtlebot3_msgs.git && \
    git clone https://github.com/ROBOTIS-GIT/turtlebot3.git && \
    git clone https://github.com/ROBOTIS-GIT/turtlebot3_simulations.git
-
-ENV RESOLUTION 1920x1080 
