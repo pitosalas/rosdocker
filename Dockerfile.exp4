@@ -1,0 +1,80 @@
+# Trying to use a working Dockerfile with vnc to now install TB3 stuff
+# Added a change based on SO because run apt-key was erroring.
+# This is a copy of https://github.com/bpinaya/robond-docker
+# This one works and allows me to launch Gazebo
+# Launch `docker run --rm -it -p 80:80/tcp rosdocker:latest` will allow you to open a browser on 0.0.0.0
+# 
+# Kudos to DOROWU for his amazing VNC 16.04 KDE image
+# Kudos from BPINAYA for his amazing work too.
+
+
+
+FROM dorowu/ubuntu-desktop-lxde-vnc:xenial
+
+# Update
+RUN apt-get update && \
+  apt-get upgrade -y
+
+# Install required packages
+RUN apt-get install -y \
+  dirmngr \
+  gnupg \
+  tmux \
+  curl \
+  wget \
+  git \
+  sudo \
+  libgl1-mesa-glx \
+  libgl1-mesa-dri \
+  mesa-utils \
+  unzip \
+  && rm -rf /var/likb/apt/lists/*
+
+# Adding keys for ROS
+RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+RUN apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 421C365BD9FF1F717815A3895523BAEEB01FA116
+
+# From Kinetic Installation instructions: http://wiki.ros.org/kinetic/Installation/Ubuntu
+RUN apt-get update
+RUN apt-get install -y ros-kinetic-desktop-full
+RUN apt-get install -y chrony ntpdate build-essential
+RUN rosdep init
+RUN rosdep update
+RUN apt-get install -y python-rosinstall python-rosinstall-generator python-wstool build-essential
+
+# From Robotis TB3 install: https://raw.githubusercontent.com/ROBOTIS-GIT/robotis_tools/master/install_ros_kinetic.sh
+RUN apt-get install -y ros-kinetic-joy ros-kinetic-teleop-twist-joy ros-kinetic-teleop-twist-keyboard ros-kinetic-laser-proc ros-kinetic-rgbd-launch ros-kinetic-depthimage-to-laserscan ros-kinetic-rosserial-arduino ros-kinetic-rosserial-python ros-kinetic-rosserial-server ros-kinetic-rosserial-client ros-kinetic-rosserial-msgs ros-kinetic-amcl ros-kinetic-map-server ros-kinetic-move-base ros-kinetic-urdf ros-kinetic-xacro ros-kinetic-compressed-image-transport ros-kinetic-rqt-image-view ros-kinetic-gmapping ros-kinetic-navigation ros-kinetic-interactive-markers
+
+RUN echo 'source /opt/ros/kinetic/setup.bash' >> /home/ubuntu/.bashrc
+RUN echo 'source /home/ubuntu/catkin_ws/devel/setup.bash' >> /home/ubuntu/.bashrc
+RUN /bin/bash -c "echo 'export HOME=/home/ubuntu' >> /root/.bashrc && source /root/.bashrc"
+
+RUN mkdir -p ~/catkin_ws/src
+
+ENV BASH_ENV /home/ubuntu/.bashrc
+RUN cd ~/catkin_ws/src && \
+  /bin/bash -c -i "/opt/ros/kinetic/bin/catkin_init_workspace"
+RUN cd ~/catkin_ws && \
+  /bin/bash -c -i "catkin_make"
+
+RUN echo "alias eb='nano ~/.bashrc'" >> ~/.bashrc
+RUN echo "alias sb='source ~/.bashrc'" >> ~/.bashrc
+RUN echo "alias gs='git status'" >> ~/.bashrc
+RUN echo "alias gp='git pull'" >> ~/.bashrc
+RUN echo "alias cw='cd ~/catkin_ws'" >> ~/.bashrc
+RUN echo "alias cs='cd ~/catkin_ws/src'" >> ~/.bashrc
+RUN echo "alias cm='cd ~/catkin_ws && catkin_make'" >> ~/.bashrc
+
+RUN echo "source /opt/ros/kinetic/setup.bash" >> ~/.bashrc
+RUN echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc
+RUN echo "export ROS_MASTER_URI=http://localhost:11311" >> ~/.bashrc
+RUN echo "export ROS_HOSTNAME=localhost" >> ~/.bashrc
+RUN echo "export TB3_MODEL=burger" >> ~/.bashrc
+RUN echo "export TURTLEBOT3_MODEL=burger" >> ~/.bashrc
+
+### Get Turtlebot3 stuff
+RUN cd /home/ubuntu/catkin_ws/src/ && git clone https://github.com/ROBOTIS-GIT/turtlebot3_msgs.git && \
+   git clone https://github.com/ROBOTIS-GIT/turtlebot3.git && \
+   git clone https://github.com/ROBOTIS-GIT/turtlebot3_simulations.git
+
+ENV RESOLUTION 1920x1080 
